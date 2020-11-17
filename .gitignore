@@ -22,7 +22,4 @@ __pycache__
 
 # Installer logs
 pip-log.txt
-
-# Static files
 /app/static/post_pics/
-/app/static/profile_pics/
