@@ -1,16 +1,20 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
-
-{% block title %}Flasky{% endblock %}
-
+{% block title %}SocialApp - Home{% endblock %}
 {% block page_content %}
-<div class="page-header">
-    <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
-    {% if not known %}
-    <p>Pleased to meet you!</p>
-    {% else %}
-    <p>Happy to see you again!</p>
-    {% endif %}
-</div>
-{{ wtf.quick_form(form) }}
+    <div>
+        {% if current_user.check_access(Permission.WRITE) %}
+            {{ wtf.quick_form(form) }}
+        {% endif %}
+    </div>
+    <div class="post-tabs">
+    <ul class="nav nav-tabs">
+        <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('main.show_all') }}">All</a></li>
+        {% if current_user.is_authenticated %}
+        <li{% if show_followed %} class="active"{% endif %}><a href="{{ url_for('main.show_followed') }}">Followers</a></li>
+        {% endif %}
+    </ul>
+        {% include '_posts.html' %}
+        {% include '_pagination.html' %}
+    </div>
 {% endblock %}

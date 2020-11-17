@@ -4,6 +4,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'ENTER YOUR STRING'  # Enter secret key
+    SOCIAL_APP_ADMIN = 'admin@example.com'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     @staticmethod
@@ -21,6 +22,7 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         'sqlite://'
+    WTF_CSRF_ENABLED = False
 
 
 config = {

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %} Social App {{ user.username }}{% endblock %}
+{% block page_content %}
+
+    <div class="page-header">
+
+        {% if current_user.check_access(Permission.FOLLOW) and user != current_user %}
+            {% if not current_user.is_following(user) %}
+                <a href="{{ url_for('main.follow', username=user.username) }}"
+                   class="btn btn-primary">Follow</a>
+            {% else %}
+                <a href="{{ url_for('main.unfollow', username=user.username) }}"
+                   class="btn btn-default">Unfollow</a>
+            {% endif %}
+        {% endif %}
+        <a href="{{ url_for('main.followers', username=user.username) }}">
+            Followers: <span class="badge">{{ user.followers.count() }}</span>
+        </a>
+        <a href="{{ url_for('main.followed_by', username=user.username) }}">
+            Following: <span class="badge">{{ user.followed.count() }}</span>
+        </a>
+        {% if current_user.is_authenticated and user != current_user and
+            user.is_following(current_user) %}
+            | <span class="label label-default">Follows you</span>
+        {% endif %}
+
+        <img class="img-circle img-thumbnail" src="/static/profile_pics/{{ user.image_file }}" width="125px" height="125px"  alt="avatar"/>
+        <h1>{{ user.username }}</h1>
+        {% if user.name %}
+            <p>{{ user.name }}</p>
+        {% endif %}
+        {% if current_user.is_administrator() %}
+            <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
+        {% endif %}
+        {% if user.description %}<p>{{ user.description }}</p>{% endif %}
+        <p>Member since {{ moment(user.created).format('L') }}.</p>
+        {% if user == current_user %}
+            <a class="btn btn-default" href="{{ url_for('users.edit_user_profile') }}">Edit Profile</a>
+        {% endif %}
+        {% if current_user.is_administrator() %}
+            <a class="btn btn-danger"
+               href="{{ url_for('users.edit_profile_admin', user_id=user.id) }}">
+                Edit Profile As ADMIN
+            </a>
+        {% endif %}
+
+        <h3>Posts by {{ user.username }}</h3>
+        {% include '_posts.html' %}
+
+    </div>
+{% endblock %}

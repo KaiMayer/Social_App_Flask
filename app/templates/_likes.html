@@ -1,0 +1,20 @@
+{% if current_user.is_authenticated %}
+    {% if current_user.has_liked_post(post) %}
+        <button class="like_btn btn" post_id={{ post.id }} action="unlike"
+                href="{{ url_for('main.like_action', post_id=post.id, action='unlike') }}">Unlike
+        </button>
+    {% else %}
+        <button class="like_btn btn" post_id={{ post.id }} action="like"
+                href="{{ url_for('main.like_action', post_id=post.id, action='like') }}">Like
+        </button>
+    {% endif %}
+{% endif %}
+<span id="likes_number">
+    {% with likes=post.likes.count() %}
+        {% if likes == 1 %}
+            {{ likes }} like
+        {% else %}
+            {{ likes }} likes
+        {% endif %}
+{% endwith %}
+</span>

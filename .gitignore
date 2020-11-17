@@ -1,6 +1,6 @@
 # Project exclude paths
 /venv/
-
+/.idea/
 # C extensions
 *.so
 
@@ -22,3 +22,4 @@ __pycache__
 
 # Installer logs
 pip-log.txt
+/app/static/post_pics/

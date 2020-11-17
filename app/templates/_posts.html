@@ -1,0 +1,60 @@
+<div class="infinite-container">
+    {% for post in posts %}
+        <div class="infinite-item">
+            <ul class="posts content list-group container">
+                <li class="post list-group-item">
+                    <div class="media container">
+                        <a href="{{ url_for('users.user_profile', username=post.author.username) }}">
+
+                            <img class="align-self-start mr-3 rounded thumbnail"
+                                 src="/static/profile_pics/{{ post.author.image_file }}" width="100px"
+                                 height="105px" alt="avatar"/>
+                        </a>
+                            <h4 class="mt-0"><a href="{{ url_for('users.user_profile', username=post.author.username) }}">
+                                {{ post.author.username }}</a>
+                            </h4>
+                        <div class="media-body">
+                            <p class="post-body ">{{ post.content }}</p>
+                            {% if request.path == '/' %}
+                                <p><a href="{{ url_for('main.post', id=post.id) }}">See more...</a></p>
+                            {% endif %}
+
+                            {% if post.image_file %}
+                                <img src="/static/post_pics/{{ post.image_file }}" class="img-responsive" width="700"
+                                     height="200" alt="post_picture">
+                            {% endif %}
+
+                            <p class="post-date card-text text-muted"><small>
+                                Posted {{ moment(post.timestamp).fromNow() }}</small></p>
+
+                            <div class="likes{{ post.id }}">
+                                {% include "_likes.html" %}
+                            </div>
+
+                           <a class="btn btn-link" href="{{ url_for('main.post', id=post.id)  }}#comments">
+                               {{ post.comments.count() }} Comments
+                           </a>
+
+                            {% if current_user == post.author %}
+                                <a href="{{ url_for('main.edit', id=post.id) }}">
+                                    <span class="label label-primary">Edit</span>
+                                </a>
+                            {% elif current_user.is_administrator() %}
+                                <a href="{{ url_for('main.edit', id=post.id) }}">
+                                    <span class="label label-danger">Edit [Admin]</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    {% endfor %}
+</div>
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-2.2.4.js" integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI="
+        crossorigin="anonymous"></script>
+<script src="/static/js/likes.js"></script>
+{% endblock %}
+
