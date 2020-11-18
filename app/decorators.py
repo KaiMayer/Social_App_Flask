@@ -4,6 +4,7 @@ from flask_login import current_user
 from app.main.models import Permission
 
 
+# decorator to check whether user has permission
 def permission_required(permission):
     def decorator(func):
         @wraps(func)
@@ -15,5 +16,6 @@ def permission_required(permission):
     return decorator
 
 
+# check the admin permission
 def admin_required(func):
     return permission_required(Permission.ADMIN)(func)

@@ -77,6 +77,7 @@ class SeleniumTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
+    # work in progress :)
     @unittest.skip
     def test_admin_home_page(self):
         # navigate to home page

@@ -4,17 +4,9 @@ from faker import Faker
 from . import db
 from app.main.models import Post
 from app.users.models import User
-from PIL import Image
 
 
-def resize(img):
-
-    output_size = (125, 125)
-    i = Image.open(form_picture)
-    i.thumbnail(output_size)
-    i.save(picture_path)
-
-
+# populate db with fake users
 def users(count=100):
     fake = Faker()
     i = 0
@@ -34,6 +26,7 @@ def users(count=100):
             db.session.rollback()
 
 
+# populate db with fake posts
 def posts(count=100):
     fake = Faker()
     user_count = User.query.count()
