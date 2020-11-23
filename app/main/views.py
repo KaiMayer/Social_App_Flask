@@ -67,10 +67,11 @@ def show_followed():
     resp.set_cookie('show_followed', '1', max_age=30 * 24 * 60 * 60)  # 30 days
     return resp
 
+
 # edit post route
-@main.route('/edit/<int:id>', methods=['GET', 'POST'])
+@main.route('/edit-post/<int:id>', methods=['GET', 'POST'])
 @login_required
-def edit(id):
+def edit_post(id):
     form = PostForm()
     post = Post.query.get_or_404(id)
     if current_user != post.author and not current_user.check_access(Permission.ADMIN):
@@ -177,7 +178,7 @@ def followed_by(username):
                            follows=follows)
 
 
-# post comment route
+# also post comment route
 @main.route('/post/<int:id>', methods=['GET', 'POST'])
 def post(id):
     post = Post.query.get_or_404(id)
@@ -201,6 +202,23 @@ def post(id):
     pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(page, per_page=10, error_out=False)
     comments = pagination.items
     return render_template('post.html', posts=[post], form=form, comments=comments, pagination=pagination)
+
+
+@main.route('/edit_comment/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_comment(id):
+    form = CommentForm()
+    comment = Comment.query.get_or_404(id)
+    if current_user != comment.author and not current_user.check_access(Permission.ADMIN):
+        abort(403)
+    if form.validate_on_submit():
+        comment.body = form.body.data
+        db.session.add(comment)
+        db.session.commit()
+        flash('The comment has been updated.')
+        return redirect(url_for('main.index', id=comment.id))
+    form.body.data = comment.body
+    return render_template('edit_comment.html', form=form)
 
 
 @main.route('/like/<int:post_id>/<action>', methods=['GET', 'POST'])

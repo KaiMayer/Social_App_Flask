@@ -32,7 +32,7 @@ def edit_user_profile():
         db.session.commit()
         flash('Your profile has been successfully updated')
         return redirect(url_for('users.user_profile', username=current_user.username))
-    form.name.data = current_user.name
+    form.name.data = current_user.nameff
     form.description.data = current_user.description
     return render_template('edit_user_profile.html', form=form)
 

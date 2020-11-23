@@ -2,6 +2,9 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% block title %}SocialApp - Home{% endblock %}
 {% block page_content %}
+    {%  if current_user.is_authenticated %}
+        <h2>Hello, {{ current_user.username }}</h2>
+    {% endif %}
     <div>
         {% if current_user.check_access(Permission.WRITE) %}
             {{ wtf.quick_form(form) }}

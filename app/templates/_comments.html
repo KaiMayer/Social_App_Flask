@@ -18,6 +18,17 @@
                 <p class="post-date card-text text-muted"><small>
                     Posted {{ moment(comment.timestamp).fromNow() }}</small></p>
             </div>
+            <div class="text-muted">
+                {% if current_user == comment.author %}
+                    <a href="{{ url_for('main.edit_comment', id=comment.id) }}">
+                        <span class="label label-primary">Edit</span>
+                    </a>
+                {% elif current_user.is_administrator() %}
+                    <a href="{{ url_for('main.edit_comment', id=comment.id) }}">
+                        <span class="label label-danger">Edit [Admin]</span>
+                    </a>
+                {% endif %}
+            </div>
         </li>
     {% endfor %}
 </ul>

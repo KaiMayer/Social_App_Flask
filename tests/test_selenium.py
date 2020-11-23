@@ -1,15 +1,29 @@
-import re
 import threading
 import time
 import unittest
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from app import create_app, db, fake_data
 from app.main.models import Role, Post
 from app.users.models import User
 
 
+MAX_WAIT = 5
+
+
 class SeleniumTestCase(unittest.TestCase):
     client = None
+
+    def wait_for(self, fn):
+        start_time = time.time()
+        while True:
+            try:
+                time.sleep(0.5)
+                return fn()
+            except (AssertionError, WebDriverException) as e:
+                if time.time() - start_time > MAX_WAIT:
+                    raise e
+                time.sleep(1)
 
     @classmethod
     def setUpClass(cls):
@@ -78,21 +92,32 @@ class SeleniumTestCase(unittest.TestCase):
         pass
 
     # work in progress :)
-    @unittest.skip
-    def test_admin_home_page(self):
+    # @unittest.skip
+    def test_admin_home_page_and_make_post(self):
         # navigate to home page
         self.client.get('http://localhost:5000/')
 
         # navigate to login page
-        self.client.find_element_by_link_text('Log In').click()
-        self.assertIn('<h1>Login</h1>', self.client.page_source)
+        self.wait_for(lambda: self.client.find_element_by_link_text('Log In').click())
+        self.wait_for(lambda: self.assertIn('<h1>Login</h1>', self.client.page_source))
 
         # login
-        self.client.find_element_by_name('email'). \
-            send_keys('test_admin@example.com')
-        self.client.find_element_by_name('password').send_keys('admin')
-        self.client.find_element_by_name('submit').click()
-
+        self.wait_for(lambda: self.client.find_element_by_name('email').send_keys('test_admin@example.com'))
+        self.wait_for(lambda: self.client.find_element_by_name('password').send_keys('admin'))
+        self.wait_for(lambda: self.client.find_element_by_name('submit').click())
+        self.wait_for(lambda:
+                      self.assertIn('<h2>Hello, test_admin</h2>',
+                                    self.client.page_source))
         # navigate to the user's profile page
-        self.client.find_element_by_link_text('Profile').click()
-        self.assertIn('<h1>admin</h1>', self.client.page_source)
+        self.wait_for(lambda: self.client.find_element_by_link_text('Profile').click())
+        self.wait_for(lambda: self.assertIn('<h1>test_admin</h1>', self.client.page_source))
+
+        self.wait_for(lambda: self.client.find_element_by_link_text('Home').click())
+        self.wait_for(lambda: self.client.find_element_by_css_selector('textarea').send_keys('Test post text comes here'))
+        self.wait_for(lambda: self.client.find_element_by_id('submit').click())
+        time.sleep(20)
+
+
+
+
+
