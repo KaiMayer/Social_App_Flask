@@ -48,15 +48,6 @@ class PostLike(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
 
 
-class Follow(db.Model):
-    __tablename__ = 'follows'
-    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
-                            primary_key=True)
-    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
-                            primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-
 # Used powers of two for permission values is that it allows permissions
 # to be combined, giving each possible combination of permissions a unique value to
 # store in the role’s permissions field
@@ -129,6 +120,3 @@ class Role(db.Model):
             role.default = (role.name == default_role)
             db.session.add(role)
         db.session.commit()
-
-
-

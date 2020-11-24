@@ -28,7 +28,7 @@
                                 Posted {{ moment(post.timestamp).fromNow() }}</small></p>
 
                             <div class="likes{{ post.id }}">
-                                {% include "_likes.html" %}
+                                {% include "main/_likes.html" %}
                             </div>
 
                            <a class="btn btn-link" href="{{ url_for('main.post', id=post.id)  }}#comments">

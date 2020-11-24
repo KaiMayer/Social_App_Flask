@@ -6,17 +6,17 @@
 
         {% if current_user.check_access(Permission.FOLLOW) and user != current_user %}
             {% if not current_user.is_following(user) %}
-                <a href="{{ url_for('main.follow', username=user.username) }}"
+                <a href="{{ url_for('users.follow', username=user.username) }}"
                    class="btn btn-primary">Follow</a>
             {% else %}
-                <a href="{{ url_for('main.unfollow', username=user.username) }}"
+                <a href="{{ url_for('users.unfollow', username=user.username) }}"
                    class="btn btn-default">Unfollow</a>
             {% endif %}
         {% endif %}
-        <a href="{{ url_for('main.followers', username=user.username) }}">
+        <a href="{{ url_for('users.followers', username=user.username) }}">
             Followers: <span class="badge">{{ user.followers.count() }}</span>
         </a>
-        <a href="{{ url_for('main.followed_by', username=user.username) }}">
+        <a href="{{ url_for('users.followed_by', username=user.username) }}">
             Following: <span class="badge">{{ user.followed.count() }}</span>
         </a>
         {% if current_user.is_authenticated and user != current_user and
@@ -45,7 +45,7 @@
         {% endif %}
 
         <h3>Posts by {{ user.username }}</h3>
-        {% include '_posts.html' %}
+        {% include 'main/_posts.html' %}
 
     </div>
 {% endblock %}

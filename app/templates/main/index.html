@@ -17,7 +17,7 @@
         <li{% if show_followed %} class="active"{% endif %}><a href="{{ url_for('main.show_followed') }}">Followers</a></li>
         {% endif %}
     </ul>
-        {% include '_posts.html' %}
-        {% include '_pagination.html' %}
+        {% include 'main/_posts.html' %}
+        {% include 'main/_pagination.html' %}
     </div>
 {% endblock %}

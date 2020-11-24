@@ -1,12 +1,10 @@
 from flask import render_template, flash, redirect, \
     url_for, current_app, abort, request, make_response
-from app import db
-from app.main.models import Post, Permission, Comment
-from app.users.models import User
-from . import main
-from .forms import PostForm, CommentForm
 from flask_login import login_required, current_user
-from ..decorators import permission_required
+from app import db
+from . import main
+from app.main.models import Post, Permission, Comment
+from .forms import PostForm, CommentForm
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -44,7 +42,7 @@ def index():
         error_out=False)
     posts = pagination.items  # set ordered posts
     outer_posts = True  # variable to check if to show 'see more' tab and not show all text in post
-    return render_template('index.html', form=form, posts=posts,
+    return render_template('main/index.html', form=form, posts=posts,
                            show_followed=show_followed,
                            pagination=pagination,
                            outer_posts=outer_posts)
@@ -87,95 +85,7 @@ def edit_post(id):
         return redirect(url_for('main.index', id=post.id))
     form.content.data = post.content
     form.picture.data = post.image_file
-    return render_template('edit_post.html', form=form)
-
-
-@main.route('/follow/<username>')
-@login_required
-@permission_required(Permission.FOLLOW)
-def follow(username):
-    # load the user
-    user = User.query.filter_by(username=username).first()
-    # verify if it is valid
-    if user is None:
-        flash('Invalid user.')
-        return redirect(url_for('main.index'))
-    # verify if it isn't already following
-    if current_user.is_following(user):
-        flash('You are already following this user.')
-        return redirect(url_for('users.user_profile', username=username))
-    # call helper function from follow model
-    current_user.follow(user)
-    db.session.commit()
-    flash('You are now following %s.' % username)
-    return redirect(url_for('users.user_profile', username=username))
-
-
-@main.route('/unfollow/<username>')
-@login_required
-@permission_required(Permission.FOLLOW)
-def unfollow(username):
-    # load the user
-    user = User.query.filter_by(username=username).first()
-    # verify if it is valid
-    if user is None:
-        flash('Invalid user.')
-        return redirect(url_for('main.index'))
-    # verify if it is following
-    if not current_user.is_following(user):
-        flash('You are not following this user.')
-        return redirect(url_for('users.user_profile', username=username))
-    # call helper method from follow model
-    current_user.unfollow(user)
-    db.session.commit()
-    flash('You are not following %s anymore.' % username)
-    return redirect(url_for('users.user_profile', username=username))
-
-
-# count followers
-@main.route('/followers/<username>')
-def followers(username):
-    # load the user
-    user = User.query.filter_by(username=username).first()
-    # verify user
-    if user is None:
-        flash('Invalid user.')
-        return redirect(url_for('main.index'))
-    page = request.args.get('page', 1, type=int)
-    # paginate the list of followers
-    pagination = user.followers.paginate(
-        page, per_page=10,
-        error_out=False)
-    # Since the query for followers returns Follow instances,
-    # the list is converted into another list that has user
-    # and timestamp fields in each entry
-    follows = [{'user': item.follower, 'timestamp': item.timestamp}
-               for item in pagination.items]
-    return render_template('followers.html', user=user, title="Followers of",
-                           endpoint='.followers', pagination=pagination, follows=follows)
-
-
-@main.route('/followed_by/<username>')
-def followed_by(username):
-    # get user
-    user = User.query.filter_by(username=username).first()
-    # verify if it is valid
-    if user is None:
-        flash('Invalid user.')
-        return redirect(url_for('main.index'))
-    page = request.args.get('page', 1, type=int)
-    # paginate the list of followed
-    pagination = user.followed.paginate(
-        page, per_page=10,
-        error_out=False)
-    # Since the query for followed returns Follow instances,
-    # the list is converted into another list that has user
-    # and timestamp fields in each entry
-    follows = [{'user': item.followed, 'timestamp': item.timestamp}
-               for item in pagination.items]
-    return render_template('followers.html', user=user, title="Followed by",
-                           endpoint='.followed_by', pagination=pagination,
-                           follows=follows)
+    return render_template('main/edit_post.html', form=form)
 
 
 # also post comment route
@@ -201,7 +111,7 @@ def post(id):
 
     pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(page, per_page=10, error_out=False)
     comments = pagination.items
-    return render_template('post.html', posts=[post], form=form, comments=comments, pagination=pagination)
+    return render_template('main/post.html', posts=[post], form=form, comments=comments, pagination=pagination)
 
 
 @main.route('/edit_comment/<int:id>', methods=['GET', 'POST'])
@@ -218,7 +128,33 @@ def edit_comment(id):
         flash('The comment has been updated.')
         return redirect(url_for('main.index', id=comment.id))
     form.body.data = comment.body
-    return render_template('edit_comment.html', form=form)
+    return render_template('main/edit_comment.html', form=form)
+
+
+@main.route('/delete_comment/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_comment(id):
+    comment = Comment.query.filter_by(id=id).first()
+    post = Post.query.get_or_404(comment.post_id)
+    if current_user != comment.author and not current_user.check_access(Permission.ADMIN):
+        abort(403)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('The comment has been deleted.')
+    page = request.args.get('page', 1, type=int)
+    # -1 used to request the last page so that comment could appear
+    if page == -1:
+        # calculate the actual page number to use
+        page = (post.comments.count() - 1) // 10 + 1  # 10: number of comments per page
+
+    pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(page, per_page=10, error_out=False)
+    comments = pagination.items
+
+    return render_template('main/_comments.html',
+                           posts=[post],
+                           comments=comments,
+                           pagination=pagination,
+                           post_id=comment.post_id)
 
 
 @main.route('/like/<int:post_id>/<action>', methods=['GET', 'POST'])
@@ -237,7 +173,7 @@ def like_action(post_id, action):
         db.session.commit()
 
     post.likes.count()
-    return render_template('_likes.html', post=post)
+    return render_template('main/_likes.html', post=post)
 
 
 # works only in testing mode
@@ -253,4 +189,3 @@ def server_shutdown():
     # exit server gracefully
     shutdown()
     return 'Shutting down...'
-

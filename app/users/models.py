@@ -1,13 +1,23 @@
+import os
+import secrets
+from datetime import datetime
+from PIL import Image
 from app import db
 from app import login_manager
-from app.main.models import Post, Role, Permission, Follow, PostLike
+from app.main.models import Post, Role, Permission, PostLike
 from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql import func
 from flask import current_app
-import os
-import secrets
-from PIL import Image
+
+
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class User(db.Model, UserMixin):
@@ -141,6 +151,7 @@ class User(db.Model, UserMixin):
         return self.followers.filter_by(
             follower_id=user.id).first() is not None
 
+
 # ensuring that not register user has no permissions and accesses
 class AnonymousUser(AnonymousUserMixin):
     def check_access(self, permission):
@@ -152,6 +163,7 @@ class AnonymousUser(AnonymousUserMixin):
     def has_liked_post(self, post):
         return False
 
+
 # set login manager to use AnonUser
 login_manager.anonymous_user = AnonymousUser
 
@@ -159,4 +171,3 @@ login_manager.anonymous_user = AnonymousUser
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-

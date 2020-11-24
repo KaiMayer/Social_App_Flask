@@ -2,12 +2,12 @@
 {% import "bootstrap/wtf.html" as wtf %}
     {% block title %}Social App - Post{% endblock %}
     {% block page_content %}
-    {% include '_posts.html' %}
+    {% include 'main/_posts.html' %}
         <h4 id="comments">Comments</h4>
 {% if current_user.check_access(Permission.COMMENT) %}
 <div class="comment-form">
     {{ wtf.quick_form(form) }}
 </div>
 {% endif %}
-        {% include '_comments.html' %}
+        {% include 'main/_comments.html' %}
 {% endblock %}
