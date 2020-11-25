@@ -1,3 +1,6 @@
+from flask import url_for
+from werkzeug.routing import ValidationError
+
 from app import db
 from datetime import datetime
 import os
@@ -31,7 +34,25 @@ class Post(db.Model):
             img.save(picture_path)
         return picture_fn
 
+    def to_json(self):
+        json_post = {
+            'url': url_for('api.get_post', id=self.id),
+            'content': self.content,
+            'timestamp': self.timestamp,
+            'author_url': url_for('api.get_user', id=self.author_id),
+            'comments_url': url_for('api.get_post_comments', id=self.id),
+            'comment_count': self.comments.count()
+        }
+        return json_post
 
+    @staticmethod
+    def from_json(json_post):
+        content = json_post.get('content')
+        if content is None or content == '':
+            raise ValidationError('post does not have a body')
+        return Post(content=content)
+
+    
 class Comment(db.Model):
     __tablename__ = 'comments'
     id = db.Column(db.Integer, primary_key=True)

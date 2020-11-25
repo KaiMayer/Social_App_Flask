@@ -10,6 +10,7 @@ class Config:
     @staticmethod
     def init_app(app):
         pass
+        # Role.insert_roles()
 
 
 class DevelopmentConfig(Config):

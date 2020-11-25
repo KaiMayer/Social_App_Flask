@@ -22,6 +22,8 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
 
+
+
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
@@ -30,6 +32,9 @@ def create_app(config_name):
 
     from .users import users as users_blueprint
     app.register_blueprint(users_blueprint, url_prefix='/users')
+
+    from .api import api as api_blueprint
+    app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
     return app
 

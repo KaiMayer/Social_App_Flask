@@ -1,14 +1,16 @@
 import os
 import secrets
+import hashlib
 from datetime import datetime
 from PIL import Image
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from app import db
 from app import login_manager
 from app.main.models import Post, Role, Permission, PostLike
 from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql import func
-from flask import current_app
+from flask import current_app, url_for
 
 
 class Follow(db.Model):
@@ -55,6 +57,31 @@ class User(db.Model, UserMixin):
             # user default one (user)
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+
+    def to_json(self):
+        json_user = {
+            'url': url_for('api.get_user', id=self.id),
+            'username': self.username,
+            'created': self.created,
+            'posts_url': url_for('api.get_user_posts', id=self.id),
+            'followed_posts_url': url_for('api.get_user_followed_posts',
+                                          id=self.id),
+            'post_count': self.posts.count()
+        }
+        return json_user
+
+    def generate_auth_token(self, expiration):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
 
     # add like
     def like_post(self, post):
